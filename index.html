@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumSim • Interactive Laboratory</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0c0d10;
+        }
+
+        .qs {
+            min-height: 100vh;
+            background: #0c0d10;
+            color: #e8eaf0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+        }
+
+        .qs::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .qs-shell {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* Header */
+        .qs-header {
+            padding: 52px 0 28px;
+            border-bottom: 1px solid #1e2130;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .qs-sub {
+            font-size: 9px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #3a3f52;
+            margin-bottom: 6px;
+        }
+
+        .qs-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: #e8eaf0;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .qs-title em {
+            font-style: italic;
+            color: #f5a623;
+        }
+
+        .qs-badge {
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: 1px solid #7a5312;
+            color: #f5a623;
+            padding: 4px 10px;
+            opacity: 0.7;
+        }
+
+        /* Nav */
+        .qs-nav {
+            display: flex;
+            border-bottom: 1px solid #1e2130;
+        }
+
+        .qs-nav-btn {
+            background: none;
+            border: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #3a3f52;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: color .2s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .qs-nav-btn:hover {
+            color: #e8eaf0;
+        }
+
+        .qs-nav-btn.on {
+            color: #f5a623;
+            border-bottom-color: #f5a623;
+        }
+
+        /* Section */
+        .qs-sec-head {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin: 44px 0 8px;
+        }
+
+        .qs-sec-title {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 22px;
+            color: #e8eaf0;
+        }
+
+        .qs-sec-num {
+            font-size: 9px;
+            letter-spacing: 4px;
+            color: #3a3f52;
+            text-transform: uppercase;
+        }
+
+        .qs-rule {
+            height: 1px;
+            background: #1e2130;
+            margin-bottom: 32px;
+        }
+
+        .qs-lede {
+            font-size: 11px;
+            line-height: 2.2;
+            color: #3a3f52;
+            max-width: 540px;
+            margin-bottom: 40px;
+        }
+
+        /* Annotation */
+        .qs-note {
+            padding: 20px 24px;
+            border-left: 2px solid #7a5312;
+            background: linear-gradient(90deg, #f5a6230a, transparent);
+            margin-bottom: 40px;
+        }
+
+        .qs-note-lbl {
+            font-size: 8px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #7a5312;
+            margin-bottom: 10px;
+        }
+
+        .qs-note-body {
+            font-size: 11px;
+            line-height: 2.1;
+            color: #3a3f52;
+        }
+
+        /* Buttons */
+        .qs-ctrl {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 36px;
+        }
+
+        .qs-btn {
+            background: none;
+            border: 1px solid #1e2130;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #3a3f52;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all .18s;
+        }
+
+        .qs-btn:hover {
+            border-color: #f5a623;
+            color: #f5a623;
+        }
+
+        .qs-btn:disabled {
+            opacity: .3;
+            cursor: default;
+        }
+
+        .qs-btn:disabled:hover {
+            border-color: #1e2130;
+            color: #3a3f52;
+        }
+
+        .qs-btn.primary {
+            border-color: #f5a623;
+            color: #f5a623;
+        }
+
+        .qs-btn.primary:hover {
+            background: #f5a62310;
+            box-shadow: 0 0 20px #f5a62318;
+        }
+
+        .qs-btn.danger {
+            border-color: #f8717144;
+            color: #f87171;
+        }
+
+        .qs-btn.danger.on {
+            border-color: #f87171;
+            box-shadow: 0 0 16px #f8717122;
+        }
+
+        /* ── Entanglement orbs ── */
+        .ql-stage {
+            display: grid;
+            grid-template-columns: 1fr 100px 1fr;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .ql-node {
+            text-align: center;
+        }
+
+        .ql-nid {
+            font-size: 9px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #3a3f52;
+            margin-bottom: 20px;
+        }
+
+        .ql-orb-wrap {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .ql-orb-wrap.passive {
+            cursor: default;
+        }
+
+        .ql-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid #1e2130;
+            transition: border-color .4s;
+        }
+
+        .ql-ring.r2 { inset: 12px; }
+        .ql-ring.r3 { inset: 24px; }
+
+        .ql-core {
+            position: absolute;
+            inset: 32px;
+            border-radius: 50%;
+            background: #12141a;
+            border: 1px solid #1e2130;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all .4s;
+        }
+
+        .ql-orb-wrap.up .ql-ring { border-color: #f5a623; }
+        .ql-orb-wrap.up .ql-core {
+            background: radial-gradient(circle at 38% 38%, #3a2a10, #1a1408);
+            border-color: #f5a623;
+            box-shadow: 0 0 32px #f5a62322, inset 0 0 20px #f5a62310;
+        }
+
+        .ql-orb-wrap.down .ql-ring { border-color: #2dd4bf; }
+        .ql-orb-wrap.down .ql-core {
+            background: radial-gradient(circle at 38% 38%, #0a2a28, #041412);
+            border-color: #2dd4bf;
+            box-shadow: 0 0 32px #2dd4bf22, inset 0 0 20px #2dd4bf10;
+        }
+
+        .ql-orb-wrap.up .ql-spin,
+        .ql-orb-wrap.up .ql-slbl { color: #f5a623; }
+
+        .ql-orb-wrap.down .ql-spin,
+        .ql-orb-wrap.down .ql-slbl { color: #2dd4bf; }
+
+        .ql-orb-wrap.idle .ql-spin,
+        .ql-orb-wrap.idle .ql-slbl { color: #3a3f52; }
+
+        .ql-spin {
+            font-size: 26px;
+            line-height: 1;
+            transition: color .3s;
+        }
+
+        .ql-slbl {
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            transition: color .3s;
+        }
+
+        .ql-hint {
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: #3a3f52;
+            margin-top: 14px;
+            transition: color .2s;
+        }
+
+        .ql-orb-wrap:not(.passive):hover .ql-hint {
+            color: #f5a623;
+        }
+
+        @keyframes orbA {
+            0%, 100% { box-shadow: 0 0 32px #f5a62322, inset 0 0 20px #f5a62310; }
+            50% { box-shadow: 0 0 56px #f5a62344, inset 0 0 32px #f5a62320; }
+        }
+
+        @keyframes orbB {
+            0%, 100% { box-shadow: 0 0 32px #2dd4bf22, inset 0 0 20px #2dd4bf10; }
+            50% { box-shadow: 0 0 56px #2dd4bf44, inset 0 0 32px #2dd4bf20; }
+        }
+
+        .ql-orb-wrap.up.live .ql-core { animation: orbA 2.8s ease-in-out infinite; }
+        .ql-orb-wrap.down.live .ql-core { animation: orbB 2.8s ease-in-out infinite; }
+
+        @keyframes flip {
+            0% { transform: scale(1) rotateY(0); }
+            40% { transform: scale(.7) rotateY(90deg); }
+            100% { transform: scale(1) rotateY(0); }
+        }
+
+        .ql-orb-wrap.flipping .ql-core { animation: flip .5s ease-in-out; }
+
+        /* Channel */
+        .ql-chan {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ql-chan-line {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #7a5312, #7a5312, transparent);
+            position: relative;
+            overflow: visible;
+        }
+
+        @keyframes flow {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(200%); }
+        }
+
+        .ql-pkt {
+            position: absolute;
+            top: -3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f5a623;
+            box-shadow: 0 0 8px #f5a623;
+            animation: flow 2s linear infinite;
+        }
+
+        .ql-pkt:nth-child(2) { animation-delay: .66s; }
+        .ql-pkt:nth-child(3) { animation-delay: 1.33s; }
+
+        .ql-chan-lbl {
+            font-size: 8px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #7a5312;
+        }
+
+        /* Readout */
+        .ql-readout {
+            display: flex;
+            gap: 1px;
+            margin-bottom: 32px;
+        }
+
+        .ql-cell {
+            flex: 1;
+            padding: 14px 8px;
+            background: #12141a;
+            border-top: 2px solid #1e2130;
+            text-align: center;
+            transition: border-color .3s;
+        }
+
+        .ql-cell.hot {
+            border-top-color: #f5a623;
+        }
+
+        .ql-cell.red {
+            border-top-color: #f87171;
+        }
+
+        .ql-val {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #f5a623;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .ql-val.r {
+            color: #f87171;
+        }
+
+        .ql-key {
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #3a3f52;
+        }
+
+        /* Intrusion */
+        .ql-intru {
+            margin: 0 0 32px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #f8717133;
+            background: #f8717106;
+        }
+
+        .ql-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f87171;
+            flex-shrink: 0;
+            animation: blink .8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .2; }
+        }
+
+        .ql-intru-txt {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #f87171;
+        }
+
+        /* ── BB84 ── */
+        .bb-stepper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 36px;
+        }
+
+        .bb-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .bb-circ {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #1e2130;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #3a3f52;
+            transition: all .3s;
+        }
+
+        .bb-circ.done {
+            border-color: #7a5312;
+            color: #f5a623;
+        }
+
+        .bb-circ.active {
+            border-color: #f5a623;
+            color: #f5a623;
+            background: #f5a62310;
+            box-shadow: 0 0 16px #f5a62330;
+        }
+
+        .bb-lbl {
+            font-size: 8px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #3a3f52;
+            text-align: center;
+            transition: color .3s;
+            max-width: 68px;
+        }
+
+        .bb-lbl.active {
+            color: #f5a623;
+        }
+
+        .bb-bridge {
+            flex: 1;
+            height: 1px;
+            background: #1e2130;
+            transition: background .4s;
+        }
+
+        .bb-bridge.lit {
+            background: #7a5312;
+        }
+
+        .bb-wrap {
+            overflow-x: auto;
+            margin-bottom: 28px;
+        }
+
+        .bb-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 520px;
+        }
+
+        .bb-tbl th {
+            padding: 4px 6px;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #3a3f52;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        .bb-rl {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #3a3f52;
+            text-align: left !important;
+            padding: 8px 12px 8px 0 !important;
+            white-space: nowrap;
+        }
+
+        .bb-tbl td {
+            text-align: center;
+            padding: 8px 6px;
+            border-top: 1px solid #1e2130;
+            font-size: 13px;
+            transition: background .3s;
+        }
+
+        .bb-tbl tr:first-child td {
+            border-top: none;
+        }
+
+        .kc {
+            background: #2dd4bf08;
+        }
+
+        /* BB84 start */
+        .bb-start {
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .bb-glyph {
+            font-family: 'Playfair Display', serif;
+            font-size: 72px;
+            color: #7a5312;
+            line-height: 1;
+            margin-bottom: 24px;
+            font-style: italic;
+            user-select: none;
+        }
+
+        .bb-cap {
+            font-size: 11px;
+            color: #3a3f52;
+            line-height: 2;
+            margin-bottom: 36px;
+            max-width: 380px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="qs">
+        <div class="qs-shell">
+
+            <!-- HEADER -->
+            <header class="qs-header">
+                <div>
+                    <div class="qs-sub">Interactive Laboratory</div>
+                    <h1 class="qs-title">Quantum<em>Sim</em></h1>
+                </div>
+                <span class="qs-badge">v0.1 — Free Preview</span>
+            </header>
+
+            <!-- NAV -->
+            <nav class="qs-nav" id="nav">
+                <button class="qs-nav-btn on" data-tab="entangle">Entanglement Lab</button>
+                <button class="qs-nav-btn" data-tab="bb84">BB84 Protocol</button>
+            </nav>
+
+            <!-- ENTANGLEMENT LAB -->
+            <div id="entangle-tab">
+                <div class="qs-sec-head">
+                    <span class="qs-sec-num">Experiment 01</span>
+                    <h2 class="qs-sec-title">Quantum Entanglement</h2>
+                </div>
+                <div class="qs-rule"></div>
+                <p class="qs-lede">Two particles share a quantum state. Measuring one instantly determines the other — no matter the distance. Einstein called it "spooky action at a distance."</p>
+
+                <div class="ql-stage">
+                    <!-- Particle α -->
+                    <div class="ql-node">
+                        <div class="ql-nid">Particle α — Earth</div>
+                        <div id="orb-alpha" class="ql-orb-wrap idle" onclick="measureAlpha()">
+                            <div class="ql-ring r1"></div>
+                            <div class="ql-ring r2"></div>
+                            <div class="ql-ring r3"></div>
+                            <div class="ql-core" id="core-alpha">
+                                <div class="ql-slbl" id="label-alpha" style="line-height:2">super-<br>position</div>
+                            </div>
+                            <div class="ql-hint" id="hint-alpha">click to measure</div>
+                        </div>
+                    </div>
+
+                    <!-- Entangled channel -->
+                    <div class="ql-chan">
+                        <div class="ql-chan-line" id="channel">
+                            <div class="ql-pkt"></div>
+                            <div class="ql-pkt"></div>
+                            <div class="ql-pkt"></div>
+                        </div>
+                        <div class="ql-chan-lbl">Entangled</div>
+                    </div>
+
+                    <!-- Particle β -->
+                    <div class="ql-node">
+                        <div class="ql-nid">Particle β — Moon</div>
+                        <div id="orb-beta" class="ql-orb-wrap passive idle">
+                            <div class="ql-ring r1"></div>
+                            <div class="ql-ring r2"></div>
+                            <div class="ql-ring r3"></div>
+                            <div class="ql-core" id="core-beta">
+                                <div class="ql-slbl" id="label-beta" style="line-height:2">awaiting<br>collapse</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Readout -->
+                <div class="ql-readout">
+                    <div class="ql-cell" id="cell-measurements">
+                        <div class="ql-val" id="val-count">0</div>
+                        <div class="ql-key">Measurements</div>
+                    </div>
+                    <div class="ql-cell" id="cell-correlation">
+                        <div class="ql-val" id="val-correlation">—</div>
+                        <div class="ql-key">Correlation</div>
+                    </div>
+                    <div class="ql-cell" id="cell-intrusion">
+                        <div class="ql-val" id="val-intrusion">NO</div>
+                        <div class="ql-key">Intrusion</div>
+                    </div>
+                </div>
+
+                <!-- Intrusion alert -->
+                <div id="intrusion-alert" class="ql-intru" style="display:none;">
+                    <div class="ql-dot"></div>
+                    <div class="ql-intru-txt">Intrusion detected — quantum state disturbed. Eavesdropper cannot hide.</div>
+                </div>
+
+                <!-- Controls -->
+                <div class="qs-ctrl">
+                    <button class="qs-btn primary" id="btn-measure" onclick="measureAlpha()">Measure Particle α</button>
+                    <button class="qs-btn danger" id="btn-snoop" onclick="toggleSnoop()">Simulate Eavesdrop</button>
+                    <button class="qs-btn" onclick="resetEntangle()">Reset</button>
+                </div>
+
+                <!-- Note -->
+                <div class="qs-note">
+                    <div class="qs-note-lbl">Observation</div>
+                    <div class="qs-note-body" id="note-entangle">Click 'Measure Particle α' to collapse its quantum superposition. The instant it resolves, Particle β — regardless of distance — will assume the opposite spin state.</div>
+                </div>
+            </div>
+
+            <!-- BB84 LAB -->
+            <div id="bb84-tab" style="display:none;">
+                <div class="qs-sec-head">
+                    <span class="qs-sec-num">Experiment 02</span>
+                    <h2 class="qs-sec-title">BB84 Key Exchange</h2>
+                </div>
+                <div class="qs-rule"></div>
+
+                <!-- Start screen -->
+                <div id="bb84-start">
+                    <div class="bb-start">
+                        <div class="bb-glyph">BB84</div>
+                        <p class="bb-cap">The protocol invented by Bennett &amp; Brassard in 1984. Two parties establish a shared secret key using quantum mechanics — with any eavesdropping attempt being physically detectable.</p>
+                        <button class="qs-btn primary" onclick="initBB84()">Initialize Protocol →</button>
+                    </div>
+                </div>
+
+                <!-- Active protocol -->
+                <div id="bb84-active" style="display:none;">
+                    <div class="bb-stepper" id="stepper"></div>
+
+                    <div class="bb-wrap">
+                        <table class="bb-tbl" id="bb-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th id="header-cells"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="bb-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="qs-note">
+                        <div class="qs-note-lbl">Protocol Note — Step <span id="note-step">1</span></div>
+                        <div class="qs-note-body" id="note-bb84"></div>
+                    </div>
+
+                    <div class="qs-ctrl">
+                        <button class="qs-btn" id="btn-prev" onclick="prevStep()" style="display:none;">← Previous</button>
+                        <button class="qs-btn primary" id="btn-next" onclick="nextStep()">Next Step →</button>
+                        <button class="qs-btn" onclick="newBB84Session()" style="margin-left:auto;">↺ New Session</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Design tokens (for JS logic only)
+        const T = {
+            amber: "#f5a623",
+            teal: "#2dd4bf",
+            red: "#f87171"
+        };
+
+        // BB84 constants
+        const BASES = { 0: "+", 1: "×" };
+        const POL = { "0-0": "↕", "0-1": "↔", "1-0": "↗", "1-1": "↘" };
+        const BB_STEPS = ["Alice\nPrepares", "Bob\nMeasures", "Compare\nBases", "Secret\nKey"];
+
+        let currentTab = "entangle";
+
+        // Entanglement state
+        let spinA = null;
+        let flipping = false;
+        let snoop = false;
+        let count = 0;
+
+        function getSpinB() {
+            return spinA === "up" ? "down" : spinA === "down" ? "up" : null;
+        }
+
+        function updateEntangleUI() {
+            const alphaWrap = document.getElementById("orb-alpha");
+            const betaWrap = document.getElementById("orb-beta");
+            const coreAlpha = document.getElementById("core-alpha");
+            const coreBeta = document.getElementById("core-beta");
+            const labelAlpha = document.getElementById("label-alpha");
+            const labelBeta = document.getElementById("label-beta");
+            const hintAlpha = document.getElementById("hint-alpha");
+
+            // Reset classes
+            alphaWrap.className = `ql-orb-wrap ${spinA || 'idle'} ${spinA && !flipping ? 'live' : ''} ${flipping ? 'flipping' : ''}`;
+            betaWrap.className = `ql-orb-wrap passive ${getSpinB() || 'idle'} ${getSpinB() ? 'live' : ''}`;
+
+            // Alpha content
+            if (spinA) {
+                labelAlpha.innerHTML = `<div class="ql-spin">${spinA === "up" ? "↑" : "↓"}</div><div class="ql-slbl">${spinA}</div>`;
+            } else {
+                labelAlpha.innerHTML = `<div class="ql-slbl" style="line-height:2">super-<br>position</div>`;
+            }
+
+            // Beta content
+            const spinBVal = getSpinB();
+            if (spinBVal) {
+                labelBeta.innerHTML = `<div class="ql-spin">${spinBVal === "up" ? "↑" : "↓"}</div><div class="ql-slbl">${spinBVal}</div>`;
+            } else {
+                labelBeta.innerHTML = `<div class="ql-slbl" style="line-height:2">awaiting<br>collapse</div>`;
+            }
+
+            // Hint
+            hintAlpha.textContent = spinA ? "re-measure" : "click to measure";
+
+            // Readout
+            document.getElementById("val-count").textContent = count;
+            document.getElementById("cell-measurements").classList.toggle("hot", count > 0);
+            document.getElementById("cell-correlation").classList.toggle("hot", count > 0);
+            document.getElementById("val-correlation").textContent = count > 0 ? "100%" : "—";
+
+            const intrusionCell = document.getElementById("cell-intrusion");
+            intrusionCell.classList.toggle("red", snoop);
+            document.getElementById("val-intrusion").innerHTML = snoop 
+                ? `<span class="r">YES</span>` 
+                : "NO";
+
+            // Intrusion alert
+            document.getElementById("intrusion-alert").style.display = snoop ? "flex" : "none";
+
+            // Note
+            let noteText = "";
+            if (snoop) {
+                noteText = "Eavesdropping disturbs the quantum state. Alice and Bob can detect intrusion by auditing a subset of their shared bits for unexpected decoherence — the laws of physics make undetected interception impossible.";
+            } else if (spinA) {
+                const spinBVal = getSpinB();
+                noteText = `Particle α collapsed to spin-${spinA === "up" ? "↑ (up)" : "↓ (down)"}. Particle β simultaneously resolved to spin-${spinBVal === "up" ? "↑ (up)" : "↓ (down)"}. The correlation is perfect, instantaneous, and distance-independent.`;
+            } else {
+                noteText = "Click 'Measure Particle α' to collapse its quantum superposition. The instant it resolves, Particle β — regardless of distance — will assume the opposite spin state.";
+            }
+            document.getElementById("note-entangle").innerHTML = noteText;
+        }
+
+        function measureAlpha() {
+            if (flipping) return;
+
+            const alphaWrap = document.getElementById("orb-alpha");
+            flipping = true;
+            alphaWrap.classList.add("flipping");
+
+            document.getElementById("btn-measure").textContent = "Collapsing…";
+            document.getElementById("btn-measure").disabled = true;
+
+            setTimeout(() => {
+                spinA = Math.random() > 0.5 ? "up" : "down";
+                count++;
+                flipping = false;
+                alphaWrap.classList.remove("flipping");
+
+                document.getElementById("btn-measure").textContent = "Measure Particle α";
+                document.getElementById("btn-measure").disabled = false;
+
+                updateEntangleUI();
+            }, 500);
+        }
+
+        function toggleSnoop() {
+            snoop = !snoop;
+            document.getElementById("btn-snoop").classList.toggle("on", snoop);
+            updateEntangleUI();
+        }
+
+        function resetEntangle() {
+            spinA = null;
+            flipping = false;
+            count = 0;
+            snoop = false;
+            document.getElementById("btn-snoop").classList.remove("on");
+            document.getElementById("btn-measure").disabled = false;
+            document.getElementById("btn-measure").textContent = "Measure Particle α";
+            updateEntangleUI();
+        }
+
+        // BB84 logic
+        let bb84Data = null;
+        let currentStep = 0;
+
+        function genBB84(n = 8) {
+            const ab = Array.from({ length: n }, () => Math.round(Math.random()));
+            const aBase = Array.from({ length: n }, () => Math.round(Math.random()));
+            const bBase = Array.from({ length: n }, () => Math.round(Math.random()));
+            const bb = ab.map((b, i) => aBase[i] === bBase[i] ? b : Math.round(Math.random()));
+            const match = aBase.map((a, i) => a === bBase[i]);
+            const key = ab.filter((_, i) => match[i]);
+            return { ab, aBase, bBase, bb, match, key };
+        }
+
+        function renderBB84Table() {
+            const tbody = document.getElementById("bb-tbody");
+            const headerCells = document.getElementById("header-cells");
+            const data = bb84Data;
+
+            // Header
+            headerCells.innerHTML = data.ab.map((_, i) => `<th>#${i + 1}</th>`).join("");
+
+            let html = "";
+
+            // Alice bit
+            html += `<tr><td class="bb-rl">Alice bit</td>`;
+            html += data.ab.map(b => `<td style="color:${T.amber}">${b}</td>`).join("");
+            html += `</tr>`;
+
+            // Alice basis
+            html += `<tr><td class="bb-rl">Alice basis</td>`;
+            html += data.aBase.map(b => `<td style="color:#e8eaf0;font-size:17px">${BASES[b]}</td>`).join("");
+            html += `</tr>`;
+
+            // Photon
+            html += `<tr><td class="bb-rl">Photon →</td>`;
+            html += data.ab.map((b, i) => {
+                const key = `${data.aBase[i]}-${b}`;
+                return `<td style="color:#fbbf24;font-size:20px">${POL[key]}</td>`;
+            }).join("");
+            html += `</tr>`;
+
+            if (currentStep >= 1) {
+                // Bob basis
+                html += `<tr><td class="bb-rl">Bob basis</td>`;
+                html += data.bBase.map(b => `<td style="color:${T.teal};font-size:17px">${BASES[b]}</td>`).join("");
+                html += `</tr>`;
+
+                // Bob bit
+                html += `<tr><td class="bb-rl">Bob bit</td>`;
+                html += data.bb.map(b => `<td style="color:${T.teal}">${b}</td>`).join("");
+                html += `</tr>`;
+            }
+
+            if (currentStep >= 2) {
+                // Match?
+                html += `<tr><td class="bb-rl">Match?</td>`;
+                html += data.match.map(m => `<td style="color:${m ? '#4ade80' : T.red};font-size:15px">${m ? '✓' : '✗'}</td>`).join("");
+                html += `</tr>`;
+            }
+
+            if (currentStep >= 3) {
+                // Secret key
+                html += `<tr><td class="bb-rl" style="color:${T.teal}">Secret key</td>`;
+                html += data.ab.map((b, i) => {
+                    return data.match[i] 
+                        ? `<td class="kc" style="color:${T.teal}">${b}</td>` 
+                        : `<td style="color:#3a3f52">·</td>`;
+                }).join("");
+                html += `</tr>`;
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        function renderStepper() {
+            const container = document.getElementById("stepper");
+            container.innerHTML = "";
+
+            BB_STEPS.forEach((stepLabel, i) => {
+                const stepHTML = `
+                    <div class="bb-step">
+                        <div class="bb-circ ${i < currentStep ? 'done' : i === currentStep ? 'active' : ''}">
+                            ${i < currentStep ? '✓' : i + 1}
+                        </div>
+                        <div class="bb-lbl ${i === currentStep ? 'active' : ''}">
+                            ${stepLabel.split("\n").map(l => `<span style="display:block">${l}</span>`).join("")}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += stepHTML;
+
+                if (i < BB_STEPS.length - 1) {
+                    container.innerHTML += `<div class="bb-bridge ${i < currentStep ? 'lit' : ''}"></div>`;
+                }
+            });
+        }
+
+        function updateBB84Note() {
+            const notes = [
+                "Alice generates 8 random classical bits, then selects a random polarization basis for each — rectilinear (+) or diagonal (×). Each photon fired toward Bob encodes one bit via its polarization angle.",
+                "Bob independently chooses a random measurement basis for each incoming photon. When his basis mismatches Alice's, quantum mechanics forces a random outcome — the bit is unreliable.",
+                "Alice and Bob announce only their bases over a public channel — never the bits themselves. Positions where bases agree produce identical bits. Mismatched positions are discarded.",
+                bb84Data ? `The surviving bits form the secret key: ${bb84Data.key.join(" ")}. Any eavesdropper measuring photons in transit would introduce detectable errors, alerting Alice and Bob.` : ""
+            ];
+
+            document.getElementById("note-step").textContent = currentStep + 1;
+            document.getElementById("note-bb84").innerHTML = notes[currentStep] || "";
+        }
+
+        function initBB84() {
+            bb84Data = genBB84(8);
+            currentStep = 0;
+
+            document.getElementById("bb84-start").style.display = "none";
+            document.getElementById("bb84-active").style.display = "block";
+
+            renderStepper();
+            renderBB84Table();
+            updateBB84Note();
+
+            // Show/hide prev button
+            document.getElementById("btn-prev").style.display = "none";
+        }
+
+        function nextStep() {
+            if (!bb84Data) return;
+            if (currentStep < BB_STEPS.length - 1) {
+                currentStep++;
+                renderStepper();
+                renderBB84Table();
+                updateBB84Note();
+
+                document.getElementById("btn-prev").style.display = "inline-block";
+                if (currentStep === BB_STEPS.length - 1) {
+                    document.getElementById("btn-next").innerHTML = `↺ New Session`;
+                    document.getElementById("btn-next").onclick = newBB84Session;
+                }
+            }
+        }
+
+        function prevStep() {
+            if (!bb84Data || currentStep === 0) return;
+            currentStep--;
+            renderStepper();
+            renderBB84Table();
+            updateBB84Note();
+
+            document.getElementById("btn-prev").style.display = currentStep > 0 ? "inline-block" : "none";
+            document.getElementById("btn-next").innerHTML = `Next Step →`;
+            document.getElementById("btn-next").onclick = nextStep;
+        }
+
+        function newBB84Session() {
+            // Reset to start screen
+            bb84Data = null;
+            currentStep = 0;
+            document.getElementById("bb84-active").style.display = "none";
+            document.getElementById("bb84-start").style.display = "block";
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.qs-nav-btn').forEach(btn => {
+                btn.classList.toggle('on', btn.getAttribute('data-tab') === tab);
+            });
+
+            document.getElementById("entangle-tab").style.display = tab === "entangle" ? "block" : "none";
+            document.getElementById("bb84-tab").style.display = tab === "bb84" ? "block" : "none";
+        }
+
+        // Initialize everything
+        function initializeApp() {
+            // Tab listeners
+            document.querySelectorAll('.qs-nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.getAttribute('data-tab'));
+                });
+            });
+
+            // Initial entanglement UI
+            updateEntangleUI();
+
+            console.log('%cQuantumSim v0.1 loaded successfully 🚀', 'color:#f5a623;font-family:monospace;font-size:10px');
+            console.log('Entanglement Lab and BB84 Protocol are now interactive.');
+        }
+
+        // Boot the app
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
